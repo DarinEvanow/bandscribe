@@ -1,9 +1,9 @@
 <script lang="ts">
-	import PianoRoll from '$lib/components/PianoRoll/PianoRoll.svelte';
+	import App from '$lib/components/App/App.svelte';
 </script>
 
 <main>
-	<PianoRoll />
+	<App />
 </main>
 
 <style>
