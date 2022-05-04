@@ -17,8 +17,10 @@
 		{ note: 'b', color: 'white' }
 	];
 
+	const pianoKeyWidth = 64;
+
 	const midiBlockWidth = 48;
-	const midiBlockHeight = 16;
+	const midiBlockHeight = 18;
 
 	const thinLineColor = 0x343645;
 	const thickLineColor = 0x3f4453;
@@ -41,19 +43,39 @@
 		return false;
 	}
 
-	function drawPianoGrid(canvas: HTMLCanvasElement) {
-		const pianoGrid = new PIXI.Application({
+	function createPIXIApp(canvas: HTMLCanvasElement) {
+		PIXI.settings.SORTABLE_CHILDREN = true;
+
+		const app = new PIXI.Application({
 			view: canvas,
 			height: Math.floor(canvas.clientHeight / 16) * 16,
 			width: Math.floor(canvas.clientWidth / 48) * 48,
 			backgroundColor: 0x000000
 		});
 
+		return app;
+	}
+
+	function drawPianoKeys(app: PIXI.Application) {
+		for (let octaveNumber = 0; octaveNumber < 8; octaveNumber++) {
+			for (let keyNumber = 0; keyNumber < 12; keyNumber++) {
+				const pianoKey = new PIXI.Sprite(PIXI.Texture.WHITE);
+				const keyColor = octave[keyNumber].color === 'white' ? 0xffffff : 0x000000;
+				pianoKey.tint = keyColor;
+				pianoKey.height = midiBlockHeight;
+				pianoKey.width = pianoKeyWidth;
+				pianoKey.position.set(0, keyNumber * midiBlockHeight + octaveNumber * 12 * midiBlockHeight);
+				app.stage.addChild(pianoKey);
+			}
+		}
+	}
+
+	function drawPianoGrid(app: PIXI.Application) {
 		for (let octaveNumber = 0; octaveNumber < 7; octaveNumber++) {
-			drawPianoGridOctave(pianoGrid, octaveNumber);
+			drawPianoGridOctave(app, octaveNumber);
 		}
 
-		drawGridLines(pianoGrid);
+		drawGridLines(app);
 	}
 
 	function drawPianoGridOctave(pianoGrid: PIXI.Application, octaveNumber: number) {
@@ -69,6 +91,7 @@
 
 				line.moveTo(0, (i + octave.length * octaveNumber) * midiBlockHeight);
 				line.lineTo(pianoGrid.screen.width, (i + octave.length * octaveNumber) * midiBlockHeight);
+				line.zIndex = 5;
 
 				pianoGrid.stage.addChild(line);
 			}
@@ -80,6 +103,7 @@
 
 				line.moveTo(0, (i + octave.length * octaveNumber) * midiBlockHeight);
 				line.lineTo(pianoGrid.screen.width, (i + octave.length * octaveNumber) * midiBlockHeight);
+				line.zIndex = 5;
 
 				pianoGrid.stage.addChild(line);
 			}
@@ -89,7 +113,7 @@
 	function drawPianoGridRow(pianoGrid: PIXI.Application, rowNumber: number, color: string) {
 		for (let i = 0; i < pianoGrid.screen.width / midiBlockWidth; i++) {
 			const midiBlock = new PIXI.Sprite(PIXI.Texture.WHITE);
-			midiBlock.position.set(i * midiBlockWidth, rowNumber * midiBlockHeight);
+			midiBlock.position.set(pianoKeyWidth + i * midiBlockWidth, rowNumber * midiBlockHeight);
 			midiBlock.width = midiBlockWidth;
 			midiBlock.height = midiBlockHeight;
 
@@ -107,8 +131,8 @@
 
 			line.lineStyle(2, lineColor, 1);
 
-			line.moveTo(i * midiBlockWidth, 0);
-			line.lineTo(i * midiBlockWidth, pianoGrid.screen.height);
+			line.moveTo(i * midiBlockWidth + pianoKeyWidth, 0);
+			line.lineTo(i * midiBlockWidth + pianoKeyWidth, pianoGrid.screen.height);
 
 			pianoGrid.stage.addChild(line);
 		}
@@ -117,7 +141,9 @@
 	onMount(() => {
 		const canvas = document.getElementById('pianoroll') as HTMLCanvasElement;
 		resizeCanvasToDisplaySize(canvas);
-		drawPianoGrid(canvas);
+		const app = createPIXIApp(canvas);
+		drawPianoGrid(app);
+		drawPianoKeys(app);
 	});
 </script>
 
